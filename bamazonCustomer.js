@@ -79,18 +79,20 @@ function takeOrder() {
         // console.log(qty);
 
         if ( product.stock_quantity <= 0 || qty < 0) {
-            console.log(`\nSorry Insufficient quantity!`);
+            console.log(`\nSorry Insufficient quantity!\n`);
 
-            init();
+            return buyMore();
             // connection.end();
         } else {
-            processOrder(product, qty);
+            return processOrder(product, qty);
         }
     });
 }
 
 function processOrder(product, qty) {
+// Does not update table, WHY?
     connection.query("SELECT * FROM products", (err, results) => {
+        if (err) throw err;
         connection.query(
             "UPDATE products SET ? WHERE ?",
             [
@@ -100,17 +102,31 @@ function processOrder(product, qty) {
                 {
                 stock_quantity: qty
                 }
-            ], (error) => {
+            ], (err) => {
                 if (err) throw err;
 
                 console.log(`\nThe total is: $${product.price}\n`);
 
+                return buyMore();
                 // console.log(productList);
 
             }
         );
     });
-    // connection.end();
-    init();
 
+}
+
+function buyMore() {
+    inquirer.prompt([
+        {
+            name: "wantsToBuy",
+            type: "list",
+            message: "Would you like to make another purchase?",
+            choices: ["YES", "NO"]
+        }
+    ]).then( (answer) => {
+        if (answer.wantsToBuy === "YES") return init();
+
+        // connection.end();
+    });
 }
