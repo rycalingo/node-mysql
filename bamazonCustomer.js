@@ -1,10 +1,10 @@
 // bamazonCustomer.js
 
-var inquire = require('inquire');
-var mysql = require('mysql');
+const inquire = require('inquire');
+const mysql = require('mysql');
 
 
-var connection = mysql.createConnection({
+const connection = mysql.createConnection({
     localhost: 'localhost',
     port: 8889,
     user: 'root',
@@ -12,19 +12,37 @@ var connection = mysql.createConnection({
     database: 'bamazon'
 });
 
-connection.connect(function(err) {
+let productList = [];
+
+connection.connect(function (err) {
     if (err) throw err;
-    initSetup();
+    read_DB(startUp);
 });
-function read_DB() {
-    connection.query("SELECT * FROM products", function(err, res) {
+function read_DB(_callback) {
+    connection.query("SELECT * FROM products", function (err, results) {
         if (err) throw err;
 
-        console.log(res);
+        for (let i in results) {
+            productList.push(results[i]);
+        }
+        // console.log(productList);
+
+        return _callback();
     });
 }
 
-function initSetup() {
-    read_DB();
-      
+function startUp() {
+
+    let print = '\n';
+    productList.forEach((obj) => {
+        print += `${obj.item_id} : ${obj.product_name} – $${obj.price}\n`
+    });
+    console.log(`
+    ***************************
+    *   ◊◊◊   Bamazon   ◊◊◊   *
+    ***************************
+
+    ${print}`
+    );
+
 }
