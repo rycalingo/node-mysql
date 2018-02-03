@@ -1,6 +1,6 @@
 // bamazonCustomer.js
 
-const inquire = require('inquire');
+const inquirer = require('inquirer');
 const mysql = require('mysql');
 
 
@@ -16,25 +16,30 @@ let productList = [];
 
 connection.connect(function (err) {
     if (err) throw err;
-    read_DB(startUp);
+    
+    read_DB(printResults, takeOrder);
+    // connection.end();
 });
-function read_DB(_callback) {
+
+function read_DB(..._callback) {
+   
     connection.query("SELECT * FROM products", function (err, results) {
         if (err) throw err;
 
         for (let i in results) {
             productList.push(results[i]);
         }
-        // console.log(productList);
 
-        return _callback();
+        return  _callback ? _callback.forEach ( _cb => _cb() ) : '';
     });
+    // Nothing shows up when console.log(productList) is outside of connection.query() ?!! 
+    // console.log(productList);
 }
 
-function startUp() {
+function printResults(_callBack) {
 
     let print = '\n';
-    productList.forEach((obj) => {
+    productList.forEach( (obj) => {
         print += `${obj.item_id} : ${obj.product_name} – $${obj.price}\n`
     });
     console.log(`
@@ -45,4 +50,22 @@ function startUp() {
     ${print}`
     );
 
+    // return _callback ? _callback() : '';
+}
+
+function takeOrder() {
+    inquirer.prompt([
+        {
+            name: "item_num",
+            type: "input",
+            message: "Enter the id of the item you wish to buy?"
+        },
+        {
+            name: "amount",
+            type: "input",
+            message: "How many?"
+        }
+    ]).then( (answer) => {
+        console.log(answer);
+    });
 }
