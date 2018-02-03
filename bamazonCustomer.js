@@ -27,15 +27,13 @@ function read_DB(..._callback) {
    
     connection.query("SELECT * FROM products", (err, results) => {
         if (err) throw err;
-
+        productList = [];
         for (let i in results) {
             productList.push(results[i]);
         }
-
+        // console.log(productList);
         return  _callback ? _callback.forEach ( _cb => _cb() ) : '';
     });
-    // Nothing shows up when console.log(productList) is outside of connection.query() ?!! 
-    // console.log(productList);
 }
 
 function printResults(_callBack) {
@@ -90,22 +88,22 @@ function takeOrder() {
 }
 
 function processOrder(product, qty) {
-// Does not update table, WHY?
+
     connection.query("SELECT * FROM products", (err, results) => {
         if (err) throw err;
         connection.query(
             "UPDATE products SET ? WHERE ?",
             [
                 {
-                item_id: product.item_id
+                stock_quantity: qty
                 },
                 {
-                stock_quantity: qty
+                item_id: product.item_id
                 }
             ], (err) => {
                 if (err) throw err;
-
-                console.log(`\nThe total is: $${product.price}\n`);
+                let total = product.price * qty;
+                console.log(`\nThe total is: $${total}\n`);
 
                 return buyMore();
                 // console.log(productList);
@@ -127,6 +125,6 @@ function buyMore() {
     ]).then( (answer) => {
         if (answer.wantsToBuy === "YES") return init();
 
-        // connection.end();
+        connection.end();
     });
 }
