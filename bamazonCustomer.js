@@ -14,7 +14,7 @@ const connection = mysql.createConnection({
 
 let productList = [];
 
-connection.connect(function (err) {
+connection.connect( (err) => {
     if (err) throw err;
     
     read_DB(printResults, takeOrder);
@@ -23,7 +23,7 @@ connection.connect(function (err) {
 
 function read_DB(..._callback) {
    
-    connection.query("SELECT * FROM products", function (err, results) {
+    connection.query("SELECT * FROM products", (err, results) => {
         if (err) throw err;
 
         for (let i in results) {
@@ -43,11 +43,11 @@ function printResults(_callBack) {
         print += `${obj.item_id} : ${obj.product_name} – $${obj.price}\n`
     });
     console.log(`
-    ***************************
-    *   ◊◊◊   Bamazon   ◊◊◊   *
-    ***************************
+        ***************************
+        *   ◊◊◊   Bamazon   ◊◊◊   *
+        ***************************
 
-    ${print}`
+        ${print}`
     );
 
     // return _callback ? _callback() : '';
@@ -66,6 +66,44 @@ function takeOrder() {
             message: "How many?"
         }
     ]).then( (answer) => {
-        console.log(answer);
+        // item_id:, product_name:, department_name:, price:, stock_quantity:
+
+        let product = productList.find( (item) => {
+            // note: typeof number == typeof string
+            return item.item_id == answer.item_num;
+        });
+
+        let qty = product.stock_quantity - answer.item_num;
+        console.log(qty);
+
+        if ( product.stock_quantity <= 0 && qty < 0) {
+            console.log(`Sorry Insufficient quantity!`);
+    
+        } else {
+            processOrder(product, qty);
+        }
     });
+}
+
+function processOrder(product, qty) {
+
+    connection.query(
+        "UPDATE products SET ? WHERE ?",
+        [
+            {
+            item_id: product.item_id
+            },
+            {
+            stock_quantity: qty
+            }
+        ], (error) => {
+            if (error) throw err;
+
+            console.log(`\nThe total is: $${product.price}\n`);
+
+            // console.log(productList);
+
+        }
+    );
+
 }
