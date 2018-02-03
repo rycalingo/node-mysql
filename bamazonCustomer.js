@@ -17,9 +17,11 @@ let productList = [];
 connection.connect( (err) => {
     if (err) throw err;
     
-    read_DB(printResults, takeOrder);
-    // connection.end();
+    init();
 });
+function init() {
+    read_DB(printResults, takeOrder);
+}
 
 function read_DB(..._callback) {
    
@@ -61,7 +63,7 @@ function takeOrder() {
             message: "Enter the id of the item you wish to buy?"
         },
         {
-            name: "amount",
+            name: "qty",
             type: "input",
             message: "How many?"
         }
@@ -72,13 +74,15 @@ function takeOrder() {
             // note: typeof number == typeof string
             return item.item_id == answer.item_num;
         });
+        console.log(product.stock_quantity);
+        let qty = product.stock_quantity - answer.qty;
+        // console.log(qty);
 
-        let qty = product.stock_quantity - answer.item_num;
-        console.log(qty);
+        if ( product.stock_quantity <= 0 || qty < 0) {
+            console.log(`\nSorry Insufficient quantity!`);
 
-        if ( product.stock_quantity <= 0 && qty < 0) {
-            console.log(`Sorry Insufficient quantity!`);
-    
+            init();
+            // connection.end();
         } else {
             processOrder(product, qty);
         }
@@ -86,24 +90,27 @@ function takeOrder() {
 }
 
 function processOrder(product, qty) {
+    connection.query("SELECT * FROM products", (err, results) => {
+        connection.query(
+            "UPDATE products SET ? WHERE ?",
+            [
+                {
+                item_id: product.item_id
+                },
+                {
+                stock_quantity: qty
+                }
+            ], (error) => {
+                if (err) throw err;
 
-    connection.query(
-        "UPDATE products SET ? WHERE ?",
-        [
-            {
-            item_id: product.item_id
-            },
-            {
-            stock_quantity: qty
+                console.log(`\nThe total is: $${product.price}\n`);
+
+                // console.log(productList);
+
             }
-        ], (error) => {
-            if (error) throw err;
-
-            console.log(`\nThe total is: $${product.price}\n`);
-
-            // console.log(productList);
-
-        }
-    );
+        );
+    });
+    // connection.end();
+    init();
 
 }
