@@ -24,7 +24,7 @@ function init() {
 }
 
 function read_DB(..._callback) {
-   
+   // Read data from database and save it to 'productList'
     connection.query("SELECT * FROM products", (err, results) => {
         if (err) throw err;
         productList = [];
@@ -37,7 +37,7 @@ function read_DB(..._callback) {
 }
 
 function printResults(_callBack) {
-
+    // Show each product of the 'productList'
     let print = '\n';
     productList.forEach( (obj) => {
         print += `${obj.item_id} : ${obj.product_name} – $${obj.price}\n`
@@ -49,11 +49,10 @@ function printResults(_callBack) {
 
         ${print}`
     );
-
-    // return _callback ? _callback() : '';
 }
 
 function takeOrder() {
+    // Take customer order
     inquirer.prompt([
         {
             name: "item_num",
@@ -107,9 +106,7 @@ function processOrder(product, qty) {
 
                 return buyMore();
                 // console.log(productList);
-
-            }
-        );
+        });
     });
 
 }
